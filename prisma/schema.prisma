@@ -1,0 +1,91 @@
+// Postgres (Neon). DATABASE_URL is the pooled connection used at runtime;
+// DIRECT_URL is the non-pooled one Prisma Migrate needs (advisory locks
+// don't work through PgBouncer).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum Tone {
+  PROFESSIONAL
+  FRIENDLY
+  CONFIDENT
+  CONCISE
+}
+
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  // Null for users who signed up with Google/GitHub and never set one.
+  password  String?
+  image     String?
+  createdAt DateTime @default(now())
+
+  // Embedded in the session JWT. Bumping it kills every cookie issued before
+  // the bump (password change, "sign out of all other devices").
+  sessionVersion Int @default(0)
+
+  plan                 Plan      @default(FREE)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String?
+  currentPeriodEnd     DateTime?
+
+  generations Generation[]
+  accounts    Account[]
+}
+
+model Generation {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle    String
+  company     String
+  tone        Tone     @default(PROFESSIONAL)
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// A linked Google/GitHub identity. A provider identity belongs to exactly one
+// user, and a user links at most one identity per provider.
+model Account {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          OAuthProvider
+  providerAccountId String
+  email             String?
+  createdAt         DateTime      @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+// Fixed-window rate-limit counters. In Postgres rather than memory so the
+// limit holds across serverless instances.
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+}

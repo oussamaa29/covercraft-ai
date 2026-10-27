@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf8;
+  --surface: #ffffff;
+  --surface-muted: #f3f1ed;
+  --foreground: #16181a;
+  --muted: #5b6169;
+  --border: #e4e1da;
+
+  --accent: #0f9d6b;
+  --accent-strong: #0b7d55;
+  --accent-soft: #e3f5ec;
+  --accent-foreground: #ffffff;
+
+  --highlight: #e14f6b;
+  --highlight-soft: #fbe8ec;
+
+  --radius: 0.9rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d0f0e;
+    --surface: #161917;
+    --surface-muted: #1d2120;
+    --foreground: #f3f5f2;
+    --muted: #9aa39a;
+    --border: #2a2e2b;
+
+    --accent: #34d399;
+    --accent-strong: #6ee7b7;
+    --accent-soft: #113b2c;
+    --accent-foreground: #06120c;
+
+    --highlight: #fb7185;
+    --highlight-soft: #3a1620;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-card: var(--radius);
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
