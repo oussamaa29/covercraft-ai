@@ -97,6 +97,8 @@ export function GenerationWorkspace({
     try {
       const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) ?? "null") as Partial<FormState> | null;
       if (saved && (saved.jobDescription || saved.jobTitle || saved.company)) {
+        // Syncing from an external store after mount is the intended use here.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForm((f) => ({ ...f, ...saved }));
         setDraftRestored(true);
       }
@@ -540,13 +542,14 @@ function RevealText({
   className?: string;
 }) {
   const words = text.split(/(\s+)/);
-  const [count, setCount] = useState(animate ? 0 : words.length);
+  // animate is only ever true client-side (right after a generation), so
+  // reading matchMedia in the initializer can't cause a hydration mismatch.
+  const [count, setCount] = useState(() =>
+    animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : words.length
+  );
 
   useEffect(() => {
-    if (!animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setCount(words.length);
-      return;
-    }
+    if (count >= words.length) return;
     const step = Math.max(1, Math.ceil(words.length / 60));
     const id = setInterval(() => {
       setCount((c) => {
@@ -555,7 +558,9 @@ function RevealText({
       });
     }, 16);
     return () => clearInterval(id);
-  }, [animate, words.length]);
+    // Starts once; the interval itself advances count.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [words.length]);
 
   const done = count >= words.length;
   return (

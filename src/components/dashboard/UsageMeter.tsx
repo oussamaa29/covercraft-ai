@@ -28,13 +28,10 @@ export function UsageMeter({
   const atLimit = !isUnlimited && used >= limit;
   // Start at 0 and grow to the real value after mount, so the bar animates in.
   const [shown, setShown] = useState(0);
-  const [resetsOn, setResetsOn] = useState<string | null>(null);
   useEffect(() => {
     const id = requestAnimationFrame(() => setShown(pct));
     return () => cancelAnimationFrame(id);
   }, [pct]);
-  // Formatted client-side: the date depends on the viewer's timezone/locale.
-  useEffect(() => setResetsOn(nextMonthStart()), []);
 
   return (
     <div
@@ -51,8 +48,12 @@ export function UsageMeter({
             : atLimit
               ? `All ${limit} letters used this month`
               : `${used} / ${limit} letters this month`}
-          {!isUnlimited && resetsOn && (
-            <span className="text-muted"> · resets {resetsOn}</span>
+          {!isUnlimited && (
+            // Server and browser may format the date differently (locale, timezone).
+            <span className="text-muted" suppressHydrationWarning>
+              {" "}
+              · resets {nextMonthStart()}
+            </span>
           )}
         </span>
       </div>

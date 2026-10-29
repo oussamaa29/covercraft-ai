@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { ButtonLink } from "@/components/ui/Button";
 import { LogoutButton } from "@/components/LogoutButton";
 import { UserAvatar } from "@/components/UserAvatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileMenu } from "@/components/MobileMenu";
 
 export async function Navbar() {
   // The navbar lives in the root layout, which error.tsx can't catch. If the
@@ -29,14 +31,14 @@ export async function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle className="hidden sm:flex" />
           {user ? (
             <>
               <ButtonLink href="/dashboard" variant="ghost" size="sm">
                 Dashboard
               </ButtonLink>
-              {/* On phones the bar is too narrow for all three; Log out also
-                  lives on the settings page the avatar links to. */}
+              {/* On phones Log out lives in the menu (and on the settings page). */}
               <LogoutButton className="hidden sm:inline-flex" />
               <Link
                 href="/dashboard/settings"
@@ -49,7 +51,7 @@ export async function Navbar() {
             </>
           ) : (
             <>
-              <ButtonLink href="/login" variant="ghost" size="sm">
+              <ButtonLink href="/login" variant="ghost" size="sm" className="hidden sm:inline-flex">
                 Log in
               </ButtonLink>
               <ButtonLink href="/register" variant="primary" size="sm">
@@ -57,6 +59,7 @@ export async function Navbar() {
               </ButtonLink>
             </>
           )}
+          <MobileMenu signedIn={Boolean(user)} />
         </div>
       </div>
     </header>

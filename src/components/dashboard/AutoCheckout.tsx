@@ -3,11 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { startCheckout } from "@/lib/checkout";
-import type { PlanId } from "@/lib/plans";
+import type { BillingInterval, PlanId } from "@/lib/plans";
 
 // Finishes "sign up for Pro" for OAuth signups: they arrive here from the
 // provider callback, and this kicks off the same checkout RegisterForm does.
-export function AutoCheckout({ plan, planName }: { plan: PlanId; planName: string }) {
+export function AutoCheckout({
+  plan,
+  planName,
+  interval,
+}: {
+  plan: PlanId;
+  planName: string;
+  interval: BillingInterval;
+}) {
   const [error, setError] = useState<string | null>(null);
   const started = useRef(false);
 
@@ -19,7 +27,7 @@ export function AutoCheckout({ plan, planName }: { plan: PlanId; planName: strin
     // Stripe (or a refresh after an error) lands on plain billing instead of
     // bouncing to a fresh checkout session.
     const clearTrigger = () => window.history.replaceState(null, "", "/dashboard/billing");
-    startCheckout(plan)
+    startCheckout(plan, interval)
       .then((url) => {
         clearTrigger();
         window.location.assign(url);
@@ -28,7 +36,7 @@ export function AutoCheckout({ plan, planName }: { plan: PlanId; planName: strin
         clearTrigger();
         setError(err instanceof Error ? err.message : "Something went wrong");
       });
-  }, [plan]);
+  }, [plan, interval]);
 
   if (error) {
     return (

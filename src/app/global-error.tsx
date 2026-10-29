@@ -30,6 +30,7 @@ export default function GlobalError({
               Try again
             </button>
             {/* A plain <a>: a full reload is the point when the layout is broken. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/"
               className="inline-flex h-11 items-center rounded-xl border border-border px-5 text-sm font-medium hover:bg-surface-muted"

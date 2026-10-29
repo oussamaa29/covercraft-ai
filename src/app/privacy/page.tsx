@@ -33,8 +33,13 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Your letters:</strong> the job title, company, tone and generated text of
-            each cover letter, so your history is there next time. The job description and
-            background you paste are used to generate the letter and aren&rsquo;t saved.
+            each cover letter, so your history is there next time — plus the job description
+            and background you pasted, so a letter can be rewritten in another tone. Deleting a
+            letter (or your account) deletes them too.
+          </li>
+          <li>
+            <strong>Saved profiles:</strong> any candidate profiles (name and background) you
+            choose to save in Settings.
           </li>
           <li>
             <strong>Billing:</strong> your plan plus Stripe&rsquo;s customer and subscription

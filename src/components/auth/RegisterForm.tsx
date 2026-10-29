@@ -5,10 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { PasswordInput } from "@/components/auth/PasswordInput";
-import type { PlanId } from "@/lib/plans";
+import type { BillingInterval, PlanId } from "@/lib/plans";
 import { startCheckout } from "@/lib/checkout";
 
-export function RegisterForm({ plan }: { plan?: PlanId }) {
+export function RegisterForm({
+  plan,
+  interval = "month",
+}: {
+  plan?: PlanId;
+  interval?: BillingInterval;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,7 +42,7 @@ export function RegisterForm({ plan }: { plan?: PlanId }) {
 
       if (plan && plan !== "FREE") {
         try {
-          window.location.assign(await startCheckout(plan));
+          window.location.assign(await startCheckout(plan, interval));
           return;
         } catch {
           // Billing unavailable: the account exists, so carry on to the dashboard.

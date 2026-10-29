@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { PricingCards } from "@/components/PricingCards";
 import { BillingPortalButton } from "@/components/dashboard/BillingPortalButton";
 import { AutoCheckout } from "@/components/dashboard/AutoCheckout";
-import { PLANS, type PlanId } from "@/lib/plans";
+import { PLANS, isInterval, type PlanId } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Billing — CoverCraft" };
 
@@ -33,7 +33,13 @@ export default async function BillingPage(props: PageProps<"/dashboard/billing">
         <p className="mt-1 text-sm text-muted">Manage your plan and payment details.</p>
       </div>
 
-      {checkoutPlan && <AutoCheckout plan={checkoutPlan} planName={PLANS[checkoutPlan].name} />}
+      {checkoutPlan && (
+        <AutoCheckout
+          plan={checkoutPlan}
+          planName={PLANS[checkoutPlan].name}
+          interval={isInterval(searchParams.interval) ? searchParams.interval : "month"}
+        />
+      )}
 
       {showSuccess && (
         <p className="flex items-center gap-2 rounded-lg bg-accent-soft px-4 py-3 text-sm text-accent-strong">

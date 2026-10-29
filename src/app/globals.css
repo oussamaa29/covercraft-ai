@@ -17,10 +17,14 @@
   --highlight-soft: #fbe8ec;
 
   --radius: 0.9rem;
+  color-scheme: light;
 }
 
+/* Dark follows the OS unless the theme toggle picked light; the toggle's
+   "dark" applies the same values regardless of the OS (data-theme on <html>,
+   set before first paint by the script in the root layout). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0d0f0e;
     --surface: #161917;
     --surface-muted: #1d2120;
@@ -35,7 +39,26 @@
 
     --highlight: #fb7185;
     --highlight-soft: #3a1620;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --background: #0d0f0e;
+  --surface: #161917;
+  --surface-muted: #1d2120;
+  --foreground: #f3f5f2;
+  --muted: #9aa39a;
+  --border: #2a2e2b;
+
+  --accent: #34d399;
+  --accent-strong: #6ee7b7;
+  --accent-soft: #113b2c;
+  --accent-foreground: #06120c;
+
+  --highlight: #fb7185;
+  --highlight-soft: #3a1620;
+  color-scheme: dark;
 }
 
 @theme inline {

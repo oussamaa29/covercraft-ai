@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/auth/AuthShell";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { enabledProviders } from "@/lib/oauth";
-import { PLANS, type PlanId } from "@/lib/plans";
+import { PLANS, isInterval, type PlanId } from "@/lib/plans";
 
 export const metadata: Metadata = { title: "Sign up — CoverCraft" };
 
@@ -12,13 +12,14 @@ export default async function RegisterPage(props: PageProps<"/register">) {
   const rawPlan = typeof searchParams.plan === "string" ? searchParams.plan : undefined;
   const plan = rawPlan && Object.hasOwn(PLANS, rawPlan) ? (rawPlan as PlanId) : undefined;
   const isPaidPlan = plan !== undefined && plan !== "FREE";
+  const interval = isInterval(searchParams.interval) ? searchParams.interval : "month";
 
   return (
     <AuthShell
       title="Create your account"
       subtitle={
         isPaidPlan
-          ? `You'll be sent to checkout for the ${PLANS[plan].name} plan right after.`
+          ? `You'll be sent to checkout for ${PLANS[plan].name} (${interval === "year" ? "yearly" : "monthly"}) right after.`
           : "Free forever — 3 cover letters a month, no card required."
       }
     >
@@ -26,9 +27,9 @@ export default async function RegisterPage(props: PageProps<"/register">) {
           checkout RegisterForm starts after an email signup. */}
       <OAuthButtons
         enabled={enabledProviders()}
-        next={isPaidPlan ? `/dashboard/billing?checkout=${plan}` : undefined}
+        next={isPaidPlan ? `/dashboard/billing?checkout=${plan}&interval=${interval}` : undefined}
       />
-      <RegisterForm plan={plan} />
+      <RegisterForm plan={plan} interval={interval} />
     </AuthShell>
   );
 }

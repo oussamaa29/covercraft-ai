@@ -10,8 +10,9 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { PricingCards } from "@/components/PricingCards";
+import { LiveDemo } from "@/components/marketing/LiveDemo";
+import { Faq } from "@/components/marketing/Faq";
 
 const FEATURES = [
   {
@@ -33,12 +34,12 @@ const FEATURES = [
   {
     icon: History,
     title: "Full history",
-    description: "Every letter you generate is saved to your account so you can revisit or reuse it later.",
+    description: "Every letter is saved: search it, edit it, or rewrite it in another tone in one click.",
   },
   {
     icon: FileDown,
     title: "Clean export",
-    description: "Pro plans export watermark-free, ready to paste into an email or application form.",
+    description: "Copy, download as text, or save a clean PDF. Pro plans export watermark-free.",
   },
   {
     icon: ShieldCheck,
@@ -93,29 +94,7 @@ export default async function Home() {
           <p className="mt-4 text-xs text-muted">No credit card required for the free plan.</p>
         </div>
 
-        <Card className="p-6 shadow-xl shadow-foreground/[0.03] sm:p-8">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <p className="text-sm font-medium">Senior Frontend Engineer</p>
-              <p className="text-xs text-muted">at Northwind Labs</p>
-            </div>
-            <Badge tone="accent">Generated in 4s</Badge>
-          </div>
-          <div className="mt-5 space-y-3 text-sm leading-relaxed text-foreground/80">
-            <p>
-              Northwind&rsquo;s move to a component-driven design system is exactly the kind of
-              problem I&rsquo;ve spent the last three years solving&mdash;most recently cutting our
-              own team&rsquo;s UI bugs by 40% after a similar migration.
-            </p>
-            <p className="text-foreground/50">
-              I&rsquo;d welcome the chance to bring that experience to your platform team&hellip;
-            </p>
-          </div>
-          <div className="mt-6 flex gap-2">
-            <Badge tone="neutral">Confident tone</Badge>
-            <Badge tone="neutral">312 words</Badge>
-          </div>
-        </Card>
+        <LiveDemo />
       </section>
 
       <section id="how-it-works" className="border-y border-border/70 bg-surface-muted/60">
@@ -137,8 +116,11 @@ export default async function Home() {
         <h2 className="text-2xl font-semibold tracking-tight">Everything you need to apply faster</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="rounded-card border border-border p-6">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent-strong">
+            <div
+              key={title}
+              className="group rounded-card border border-border bg-surface p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-sm motion-reduce:hover:translate-y-0"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent-strong transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
                 <Icon size={18} />
               </div>
               <h3 className="mt-4 font-semibold">{title}</h3>
@@ -155,6 +137,13 @@ export default async function Home() {
             <p className="mt-2 text-muted">Start free. Upgrade the moment it&rsquo;s paying for itself.</p>
           </div>
           <PricingCards isAuthenticated={Boolean(user)} currentPlan={user?.plan} />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-3xl px-6 pt-20">
+        <h2 className="text-center text-2xl font-semibold tracking-tight">Questions, answered</h2>
+        <div className="mt-8">
+          <Faq />
         </div>
       </section>
 
