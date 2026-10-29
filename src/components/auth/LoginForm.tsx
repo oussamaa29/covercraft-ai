@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
@@ -38,7 +39,9 @@ export function LoginForm({ next }: { next?: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-3.5">
       {error && (
-        <p className="rounded-lg bg-highlight-soft px-4 py-3 text-sm text-highlight">{error}</p>
+        <p role="alert" className="rounded-lg bg-highlight-soft px-4 py-3 text-sm text-highlight">
+          {error}
+        </p>
       )}
       <label className="block">
         <span className="mb-1.5 block text-sm font-medium">Email</span>
@@ -46,20 +49,25 @@ export function LoginForm({ next }: { next?: string }) {
           name="email"
           type="email"
           autoComplete="email"
+          autoFocus
           required
           className="w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
         />
       </label>
-      <label className="block">
-        <span className="mb-1.5 block text-sm font-medium">Password</span>
-        <input
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="w-full rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
-        />
-      </label>
+      <PasswordInput
+        label="Password"
+        name="password"
+        autoComplete="current-password"
+        required
+        action={
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-muted underline-offset-4 hover:text-accent hover:underline"
+          >
+            Forgot password?
+          </Link>
+        }
+      />
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Logging in…" : "Log in"}
       </Button>

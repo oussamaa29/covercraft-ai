@@ -8,6 +8,10 @@ export const LIMITS = {
   login: { limit: 10, windowMs: 15 * MINUTE },
   register: { limit: 5, windowMs: 60 * MINUTE },
   password: { limit: 10, windowMs: 15 * MINUTE },
+  // Per IP and, separately, per email: stops both spraying many addresses
+  // and flooding one inbox with reset emails.
+  forgot: { limit: 5, windowMs: 15 * MINUTE },
+  reset: { limit: 10, windowMs: 15 * MINUTE },
 } as const;
 
 type Rule = (typeof LIMITS)[keyof typeof LIMITS];

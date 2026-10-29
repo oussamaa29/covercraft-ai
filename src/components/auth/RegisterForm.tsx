@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import type { PlanId } from "@/lib/plans";
 import { startCheckout } from "@/lib/checkout";
 
@@ -53,16 +54,19 @@ export function RegisterForm({ plan }: { plan?: PlanId }) {
   return (
     <form onSubmit={onSubmit} className="space-y-3.5">
       {error && (
-        <p className="rounded-lg bg-highlight-soft px-4 py-3 text-sm text-highlight">{error}</p>
+        <p role="alert" className="rounded-lg bg-highlight-soft px-4 py-3 text-sm text-highlight">
+          {error}
+        </p>
       )}
-      <Field label="Name" name="name" type="text" autoComplete="name" required />
+      <Field label="Name" name="name" type="text" autoComplete="name" autoFocus required />
       <Field label="Email" name="email" type="email" autoComplete="email" required />
-      <Field
+      <PasswordInput
         label="Password"
         name="password"
-        type="password"
         autoComplete="new-password"
         minLength={8}
+        maxLength={72}
+        showStrength
         required
       />
       <Button type="submit" className="w-full" disabled={loading}>

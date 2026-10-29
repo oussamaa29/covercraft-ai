@@ -18,6 +18,8 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
   }
 }
 
+const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authed = await hasValidSession(request);
@@ -28,7 +30,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if ((pathname === "/login" || pathname === "/register") && authed) {
+  // /reset-password stays reachable signed in: a reset link can be opened anywhere.
+  if (AUTH_PAGES.includes(pathname) && authed) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -36,5 +39,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/login", "/register", "/forgot-password"],
 };
