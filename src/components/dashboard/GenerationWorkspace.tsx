@@ -201,7 +201,9 @@ export function GenerationWorkspace({
 
       <UsageMeter plan={plan} used={used} limit={limit} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* grid-cols-1 = minmax(0,1fr): an implicit auto track would grow to the
+          truncated title's full width and push the page sideways on phones. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <form
             ref={formRef}

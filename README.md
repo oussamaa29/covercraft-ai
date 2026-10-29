@@ -7,6 +7,22 @@ the point of this project is everything *around* the product: auth
 (email + Google/GitHub), account management, plan-gating, and a Stripe
 integration that survives retries and duplicate webhooks.
 
+## What it does
+
+- **Write**: paste a job post and your background, pick one of four tones,
+  get a tailored letter (free local AI via Ollama). Drafts autosave;
+  Ctrl/⌘+Enter generates.
+- **My letters**: search, filter by tone, edit inline, copy, download as
+  text, save as PDF (print stylesheet — the Free plan adds a small footer),
+  or rewrite a letter in another tone.
+- **Candidate profiles**: save your background once and reuse it (1 on
+  Free, 5 on Pro/Business).
+- **Account**: email/password or Google/GitHub, forgot/reset password,
+  connected accounts, sign out other devices, delete account.
+- **Billing**: Free / Pro / Business, monthly or yearly, Stripe Checkout and
+  Customer Portal.
+- Light/dark theme toggle, mobile menu, toasts, keyboard-friendly controls.
+
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack, Route Handlers)
@@ -104,8 +120,28 @@ is saved, so a failed attempt never counts against the Free plan's limit.
    ```
 4. Use Stripe's test card `4242 4242 4242 4242`, any future expiry/CVC.
 
+For the yearly toggle, also create yearly Prices and set
+`STRIPE_PRICE_PRO_YEARLY` / `STRIPE_PRICE_BUSINESS_YEARLY`.
+
 Without Stripe configured, the checkout/portal routes fail with a clear
 503 instead of crashing — you can still demo the whole non-billing product.
+
+### Enabling password-reset emails (free)
+
+Forgot-password works out of the box in development: with no SMTP
+configured, the reset link is printed to the `npm run dev` console. To
+send real emails for free with Gmail:
+
+1. Turn on 2-Step Verification for the Google account.
+2. Create an [App Password](https://myaccount.google.com/apppasswords).
+3. Set `SMTP_HOST="smtp.gmail.com"`, `SMTP_PORT="465"`, `SMTP_USER` (your
+   address), `SMTP_PASS` (the app password) and optionally `MAIL_FROM`.
+
+Reset links are single-use, expire after an hour, and only the newest one
+works; only a SHA-256 of the token is stored. `/api/auth/forgot` always
+answers the same 200 and does the lookup and sending in `after()`, so
+neither the response nor its timing reveals whether an email has an
+account. Completing a reset signs out every other device.
 
 ## The part worth reading in an interview
 
@@ -147,18 +183,31 @@ the limits hold across serverless instances.
 
 ## What's simplified on purpose
 
-- **No email sending.** That means no forgot-password flow and no email
-  verification for password signups — both need a mail provider, which
-  this project avoids so it runs with zero paid services. (It's also why
-  OAuth account linking leans on the *provider's* verification.)
+- **No email verification for password signups.** Password-reset emails
+  exist (optional SMTP), but signups aren't confirmed by email, to keep
+  sign-up one step. (It's also why OAuth account linking leans on the
+  *provider's* verification.)
 - **Business "team seats"** exist as a plan tier and a schema-level concept
   (higher limits), but there's no invite flow — multi-seat billing would
   roughly double the scope for a feature the free/Pro gating already
   demonstrates.
-- **No test suite yet.** The natural next addition: Vitest around the
-  plan-limit logic, `resolveOAuthUser` and the webhook handlers (all pure
-  enough to unit test against a database without hitting Stripe, Google or
-  GitHub), plus a Playwright smoke test for signup → generate → upgrade.
+- **"Shared letter templates" and "priority" perks** on the Business/Pro
+  cards are tier labels, not separate features.
+
+## Tests
+
+```bash
+npm run db      # Postgres must be running; tests use a separate covercraft_test DB
+npm test        # Vitest: auth, OAuth linking, rate limits, AI providers, letters, profiles, password reset
+```
+
+The unit suite calls the route handlers directly against a real Postgres
+database (truncated between tests): OAuth account resolution and its
+races, sessionVersion revocation, CSRF refusal, the AI provider fallback,
+letter ownership (another user's id is a 404), quota on rewrites, the
+profile limit under concurrent requests, and single-use reset tokens.
+The Playwright suite in `tests/e2e` (`npm run test:e2e`) is a work in
+progress.
 
 ## Project structure
 
@@ -166,15 +215,18 @@ the limits hold across serverless instances.
 src/
   app/
     api/
-      auth/            # login, register, logout, oauth/[provider](/callback)
+      auth/            # login, register, logout, forgot, reset, oauth/[provider](/callback)
       account/         # settings APIs: profile, password, oauth links, sessions, delete
+      letters/[id]/    # edit, delete, regenerate (owner-scoped)
+      profiles/        # saved candidate profiles (plan-limited)
       generate/ stripe/ health/
-    dashboard/         # protected app: letters, billing, settings
-    login/ register/   # auth pages
+    dashboard/         # protected app: new letter, letters/[id], billing, settings
+    login/ register/ forgot-password/ reset-password/
     privacy/ terms/    # legal pages (linked from the Google consent screen)
-    robots.ts sitemap.ts
-  components/          # ui/ (kit), auth/, dashboard/, settings/
-  lib/                 # auth, oauth, rate-limit, db, stripe, ai, plans, validation
+    robots.ts sitemap.ts global-error.tsx
+  components/          # ui/ (kit, toasts), auth/, dashboard/, letters/, settings/, marketing/
+  lib/                 # auth, oauth, ai, letters, quota, mail, password-reset,
+                       # rate-limit, csrf, db, stripe, plans, validation
   proxy.ts             # route protection (Next 16's renamed middleware)
 prisma/
   schema.prisma

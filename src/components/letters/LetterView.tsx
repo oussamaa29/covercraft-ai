@@ -178,7 +178,7 @@ export function LetterView({ letter, watermark }: { letter: GenerationDTO; water
       </Card>
 
       {!editing && (
-        <div className="grid gap-4 print:hidden md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 print:hidden md:grid-cols-2">
           <Card className="p-5">
             <p className="font-medium">Try another tone</p>
             <p className="mt-1 text-sm text-muted">

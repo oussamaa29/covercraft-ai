@@ -145,7 +145,7 @@ export default async function LettersPage(props: PageProps<"/dashboard/letters">
               </Link>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {letters.map((l) => (
                 <Link
                   key={l.id}
