@@ -39,18 +39,5 @@ export function Notice({ notice }: { notice: NoticeState }) {
   );
 }
 
-/**
- * fetch + JSON with the API's `{ error }` surfaced as a thrown Error. The
- * JSON content type goes on bodyless requests too: the API's CSRF guard
- * refuses anything else.
- */
-export async function sendJson(url: string, method: string, body?: unknown) {
-  const res = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "Something went wrong");
-  return data;
-}
+// Kept here so the settings forms keep importing it from one place.
+export { sendJson } from "@/lib/api-client";

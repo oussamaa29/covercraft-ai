@@ -35,6 +35,29 @@ export const deleteAccountSchema = z.object({
   confirmEmail: z.string().trim().toLowerCase().min(1, "Type your email to confirm"),
 });
 
+const toneSchema = z.enum(["PROFESSIONAL", "FRIENDLY", "CONFIDENT", "CONCISE"]);
+
+export const letterEditSchema = z.object({
+  content: z.string().trim().min(20, "The letter is too short").max(10000, "The letter is too long"),
+});
+
+export const regenerateSchema = z.object({ tone: toneSchema });
+
+export const candidateProfileSchema = z.object({
+  label: z.string().trim().min(1, "Give the profile a name").max(40),
+  fullName: z.string().trim().min(1, "Enter your name").max(80),
+  background: z.string().trim().min(10, "Add a few lines about your experience").max(4000),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(20).max(200),
+  password: passwordSchema.shape.newPassword,
+});
+
 /**
  * Only same-origin paths are allowed as post-login destinations. "//evil.com"
  * and "/\evil.com" are protocol-relative to browsers, so they're rejected too.

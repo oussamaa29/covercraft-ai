@@ -76,3 +76,16 @@ body {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
+
+/* "Save as PDF" from a letter page: plain black on white whatever the theme,
+   letter-style margins, and no app chrome (hidden with print:hidden). */
+@media print {
+  :root {
+    --background: #ffffff;
+    --surface: #ffffff;
+    --foreground: #000000;
+  }
+  @page {
+    margin: 2.2cm 2cm;
+  }
+}

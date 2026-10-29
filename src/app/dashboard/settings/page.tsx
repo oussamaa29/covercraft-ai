@@ -14,6 +14,8 @@ import { PasswordForm } from "@/components/settings/PasswordForm";
 import { DisconnectButton } from "@/components/settings/DisconnectButton";
 import { SessionControls } from "@/components/settings/SessionControls";
 import { DeleteAccountForm } from "@/components/settings/DeleteAccountForm";
+import { CandidateProfiles } from "@/components/settings/CandidateProfiles";
+import { profileLimitFor } from "@/lib/plans";
 import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = { title: "Settings — CoverCraft" };
@@ -42,10 +44,17 @@ export default async function SettingsPage(props: PageProps<"/dashboard/settings
   const user = await requireUser("/dashboard/settings");
   const searchParams = await props.searchParams;
 
-  const accounts = await db.account.findMany({
-    where: { userId: user.id },
-    select: { provider: true, email: true },
-  });
+  const [accounts, profiles] = await Promise.all([
+    db.account.findMany({
+      where: { userId: user.id },
+      select: { provider: true, email: true },
+    }),
+    db.candidateProfile.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, label: true, fullName: true, background: true },
+    }),
+  ]);
   const enabled = enabledProviders();
   const linked =
     typeof searchParams.linked === "string" && isProviderSlug(searchParams.linked)
@@ -59,7 +68,7 @@ export default async function SettingsPage(props: PageProps<"/dashboard/settings
     <div className="space-y-8 py-10">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted">Your profile, sign-in methods and sessions.</p>
+        <p className="mt-1 text-sm text-muted">Your profile, saved backgrounds, sign-in methods and sessions.</p>
       </div>
 
       {linked && (
@@ -81,6 +90,17 @@ export default async function SettingsPage(props: PageProps<"/dashboard/settings
           </p>
         </div>
         <ProfileForm name={user.name} email={user.email} />
+      </Section>
+
+      <Section
+        title="Candidate profiles"
+        description="Save your background once, then pick it on the New letter page instead of retyping it."
+      >
+        <CandidateProfiles
+          initial={profiles}
+          limit={profileLimitFor(user.plan)}
+          defaultName={user.name}
+        />
       </Section>
 
       <Section

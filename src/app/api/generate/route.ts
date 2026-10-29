@@ -3,27 +3,22 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { rejectCrossSite } from "@/lib/csrf";
 import { generateSchema } from "@/lib/validation";
-import { AiUnavailableError, generateCoverLetter } from "@/lib/ai";
+import { toLetterDTO, writeLetter } from "@/lib/letters";
 import { monthlyLimitFor } from "@/lib/plans";
-
-function startOfMonth(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), 1);
-}
+import { generationsThisMonth, quotaExceeded } from "@/lib/quota";
 
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const generations = await db.generation.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
-
-  const usedThisMonth = await db.generation.count({
-    where: { userId: user.id, createdAt: { gte: startOfMonth() } },
-  });
+  const [generations, usedThisMonth] = await Promise.all([
+    db.generation.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    generationsThisMonth(user.id),
+  ]);
 
   return NextResponse.json({
     generations,
@@ -40,21 +35,8 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const limit = monthlyLimitFor(user.plan);
-  if (limit !== Infinity) {
-    const usedThisMonth = await db.generation.count({
-      where: { userId: user.id, createdAt: { gte: startOfMonth() } },
-    });
-    if (usedThisMonth >= limit) {
-      return NextResponse.json(
-        {
-          error: `You've used all ${limit} free generations this month. Upgrade to Pro for unlimited letters.`,
-          code: "LIMIT_REACHED",
-        },
-        { status: 402 }
-      );
-    }
-  }
+  const overQuota = await quotaExceeded(user);
+  if (overQuota) return overQuota;
 
   const body = await request.json().catch(() => null);
   const parsed = generateSchema.safeParse(body);
@@ -65,32 +47,23 @@ export async function POST(request: Request) {
     );
   }
 
-  const input = parsed.data;
-  let content: string;
-  try {
-    content = await generateCoverLetter(input);
-  } catch (err) {
-    if (!(err instanceof AiUnavailableError)) throw err;
-    console.error("[generate]", err.message, err.cause ?? "");
-    // Nothing is saved, so a failed attempt doesn't use up the monthly quota.
-    return NextResponse.json(
-      {
-        error: "The AI writer is unavailable right now. Please try again in a moment.",
-        code: "AI_UNAVAILABLE",
-      },
-      { status: 503 }
-    );
-  }
+  const result = await writeLetter(parsed.data);
+  if (!result.ok) return result.response;
 
+  const input = parsed.data;
   const generation = await db.generation.create({
     data: {
       userId: user.id,
       jobTitle: input.jobTitle,
       company: input.company,
       tone: input.tone,
-      content,
+      content: result.content,
+      // Kept so the letter can be regenerated in another tone later.
+      candidateName: input.candidateName,
+      jobDescription: input.jobDescription,
+      background: input.background,
     },
   });
 
-  return NextResponse.json({ generation });
+  return NextResponse.json({ generation: toLetterDTO(generation) });
 }

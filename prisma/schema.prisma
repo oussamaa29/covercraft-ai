@@ -49,8 +49,10 @@ model User {
   subscriptionStatus   String?
   currentPeriodEnd     DateTime?
 
-  generations Generation[]
-  accounts    Account[]
+  generations    Generation[]
+  accounts       Account[]
+  profiles       CandidateProfile[]
+  passwordResets PasswordResetToken[]
 }
 
 model Generation {
@@ -61,9 +63,44 @@ model Generation {
   company     String
   tone        Tone     @default(PROFESSIONAL)
   content     String
+  // The inputs, kept so a letter can be regenerated in another tone. Null on
+  // letters written before they were stored.
+  candidateName  String?
+  jobDescription String?
+  background     String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   @@index([userId, createdAt])
+}
+
+// A saved "who I am" block (name + background) reused across letters.
+// How many a user may keep depends on the plan (see profileLimitFor).
+model CandidateProfile {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String
+  fullName   String
+  background String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Single-use password-reset links. Only a SHA-256 of the token is stored, so
+// a leaked database can't be turned into working reset links.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // A linked Google/GitHub identity. A provider identity belongs to exactly one

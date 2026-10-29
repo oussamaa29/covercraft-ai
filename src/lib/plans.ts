@@ -68,3 +68,8 @@ export function planFromPriceId(priceId: string | null | undefined): PlanId | nu
 export function monthlyLimitFor(plan: Plan | PlanId): number {
   return PLANS[plan as PlanId].monthlyLimit;
 }
+
+/** Saved candidate profiles, as advertised in each plan's feature list. */
+export function profileLimitFor(plan: Plan | PlanId): number {
+  return plan === "FREE" ? 1 : 5;
+}

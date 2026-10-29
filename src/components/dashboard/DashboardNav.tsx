@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CreditCard, PenLine, Settings } from "lucide-react";
+import { CreditCard, Files, PenLine, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
   { href: "/dashboard", label: "New letter", icon: PenLine },
+  { href: "/dashboard/letters", label: "My letters", icon: Files },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
