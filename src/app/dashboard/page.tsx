@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { monthlyLimitFor } from "@/lib/plans";
 import { GenerationWorkspace } from "@/components/dashboard/GenerationWorkspace";
+import { aiProvider, aiProviderLabel } from "@/lib/ai";
 
 export const metadata: Metadata = { title: "Dashboard — CoverCraft" };
 
@@ -27,6 +28,9 @@ export default async function DashboardPage() {
       plan={user.plan}
       limit={monthlyLimitFor(user.plan)}
       usedThisMonth={usedThisMonth}
+      aiLabel={aiProviderLabel()}
+      aiIsDemo={aiProvider() === "demo"}
+      aiIsLocal={aiProvider() === "ollama"}
       initialGenerations={generations.map((g) => ({
         id: g.id,
         jobTitle: g.jobTitle,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Copy, Check, Loader2 } from "lucide-react";
+import { Copy, Check, FlaskConical, Loader2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -23,6 +23,10 @@ interface Props {
   limit: number;
   usedThisMonth: number;
   initialGenerations: GenerationDTO[];
+  /** Which writer is configured, e.g. "Ollama · llama3.2:3b" or "Demo mode". */
+  aiLabel: string;
+  aiIsDemo: boolean;
+  aiIsLocal: boolean;
 }
 
 export function GenerationWorkspace({
@@ -31,6 +35,9 @@ export function GenerationWorkspace({
   limit,
   usedThisMonth,
   initialGenerations,
+  aiLabel,
+  aiIsDemo,
+  aiIsLocal,
 }: Props) {
   const [generations, setGenerations] = useState(initialGenerations);
   const [used, setUsed] = useState(usedThisMonth);
@@ -77,9 +84,18 @@ export function GenerationWorkspace({
 
   return (
     <div className="space-y-6 py-10">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">New cover letter</h1>
-        <p className="mt-1 text-sm text-muted">Welcome back, {userName}.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">New cover letter</h1>
+          <p className="mt-1 text-sm text-muted">Welcome back, {userName}.</p>
+        </div>
+        <Badge
+          tone={aiIsDemo ? "neutral" : "accent"}
+          title={aiIsDemo ? "No AI provider configured — letters are sample text" : undefined}
+        >
+          {aiIsDemo ? <FlaskConical size={13} /> : <Sparkles size={13} />}
+          {aiIsDemo ? "Demo mode · sample letters" : `Written by ${aiLabel}`}
+        </Badge>
       </div>
 
       <UsageMeter plan={plan} used={used} limit={limit} />
@@ -94,7 +110,7 @@ export function GenerationWorkspace({
             )}
             <div className="grid grid-cols-2 gap-4">
               <Field label="Your name" name="candidateName" defaultValue={userName} required />
-              <div className="block">
+              <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Tone</span>
                 <select
                   name="tone"
@@ -107,7 +123,7 @@ export function GenerationWorkspace({
                     </option>
                   ))}
                 </select>
-              </div>
+              </label>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Job title" name="jobTitle" placeholder="Senior Frontend Engineer" required />
@@ -137,6 +153,11 @@ export function GenerationWorkspace({
                 "Generate letter"
               )}
             </Button>
+            {loading && aiIsLocal && (
+              <p className="text-center text-xs text-muted" role="status">
+                Running on a local model — the first letter can take up to a minute.
+              </p>
+            )}
           </form>
         </Card>
 

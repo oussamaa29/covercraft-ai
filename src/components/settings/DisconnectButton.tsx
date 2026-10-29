@@ -27,7 +27,11 @@ export function DisconnectButton({ provider }: { provider: "google" | "github" }
       <Button variant="outline" size="sm" onClick={disconnect} disabled={loading}>
         {loading ? "Disconnecting…" : "Disconnect"}
       </Button>
-      {error && <p className="max-w-xs text-xs text-highlight sm:text-right">{error}</p>}
+      {error && (
+        <p role="alert" className="max-w-xs text-xs text-highlight sm:text-right">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

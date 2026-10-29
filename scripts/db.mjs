@@ -25,6 +25,18 @@ const pg = new EmbeddedPostgres({
   onLog: () => {},
 });
 
+// A second `npm run db` would otherwise crash with an unhelpful `undefined`
+// (embedded-postgres rejects without an Error when the port is taken).
+const probe = pg.getPgClient("postgres");
+const alreadyRunning = await probe.connect().then(
+  () => probe.end().then(() => true),
+  () => false
+);
+if (alreadyRunning) {
+  console.log(`Postgres is already running on port ${PORT} — nothing to do.`);
+  process.exit(0);
+}
+
 const firstRun = !existsSync(join(DATA_DIR, "PG_VERSION"));
 if (firstRun) {
   console.log("Initialising a new Postgres cluster in .pgdata …");

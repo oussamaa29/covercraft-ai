@@ -15,9 +15,17 @@ export function AutoCheckout({ plan, planName }: { plan: PlanId; planName: strin
     // StrictMode runs effects twice in dev; one checkout session is enough.
     if (started.current) return;
     started.current = true;
+    // Drop ?checkout= from this history entry before leaving, so Back from
+    // Stripe (or a refresh after an error) lands on plain billing instead of
+    // bouncing to a fresh checkout session.
+    const clearTrigger = () => window.history.replaceState(null, "", "/dashboard/billing");
     startCheckout(plan)
-      .then((url) => window.location.assign(url))
+      .then((url) => {
+        clearTrigger();
+        window.location.assign(url);
+      })
       .catch((err) => {
+        clearTrigger();
         setError(err instanceof Error ? err.message : "Something went wrong");
       });
   }, [plan]);

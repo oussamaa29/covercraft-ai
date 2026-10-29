@@ -13,6 +13,8 @@ const MESSAGES = {
   account_in_use: "That account is already connected to a different CoverCraft user.",
   provider_already_linked:
     "Your CoverCraft account is already connected to a different account from that provider.",
+  email_in_use:
+    "An account with this email already exists. Log in with your password, then connect this sign-in method from Settings.",
 } as const;
 
 export type OAuthErrorCode = keyof typeof MESSAGES;

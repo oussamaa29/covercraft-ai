@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { rejectCrossSite } from "@/lib/csrf";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
@@ -35,7 +36,22 @@ export async function POST(request: Request) {
       name: user.name,
       metadata: { userId: user.id },
     });
-    customerId = customer.id;
+    // Saved before checkout: every webhook finds the user by this id. The
+    // null guard means a second tab racing this one can't overwrite it; the
+    // loser reuses the winner's customer instead.
+    const saved = await db.user.updateMany({
+      where: { id: user.id, stripeCustomerId: null },
+      data: { stripeCustomerId: customer.id },
+    });
+    if (saved.count === 1) {
+      customerId = customer.id;
+    } else {
+      const fresh = await db.user.findUnique({
+        where: { id: user.id },
+        select: { stripeCustomerId: true },
+      });
+      customerId = fresh?.stripeCustomerId ?? customer.id;
+    }
   }
 
   const session = await stripe.checkout.sessions.create({

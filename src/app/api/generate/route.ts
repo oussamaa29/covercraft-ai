@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { rejectCrossSite } from "@/lib/csrf";
 import { generateSchema } from "@/lib/validation";
-import { generateCoverLetter } from "@/lib/ai";
+import { AiUnavailableError, generateCoverLetter } from "@/lib/ai";
 import { monthlyLimitFor } from "@/lib/plans";
 
 function startOfMonth(): Date {
@@ -66,7 +66,21 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data;
-  const content = await generateCoverLetter(input);
+  let content: string;
+  try {
+    content = await generateCoverLetter(input);
+  } catch (err) {
+    if (!(err instanceof AiUnavailableError)) throw err;
+    console.error("[generate]", err.message, err.cause ?? "");
+    // Nothing is saved, so a failed attempt doesn't use up the monthly quota.
+    return NextResponse.json(
+      {
+        error: "The AI writer is unavailable right now. Please try again in a moment.",
+        code: "AI_UNAVAILABLE",
+      },
+      { status: 503 }
+    );
+  }
 
   const generation = await db.generation.create({
     data: {

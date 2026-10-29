@@ -25,9 +25,10 @@ export function AuthShell({
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-6xl items-center gap-12 px-6 py-8 lg:grid-cols-2">
       <aside className="hidden lg:block">
-        <h2 className="text-3xl font-semibold tracking-tight">
+        {/* A <p>, not a heading: it sits before the page's <h1> in DOM order. */}
+        <p className="text-3xl font-semibold tracking-tight">
           A cover letter that sounds like you, <span className="text-accent">in seconds.</span>
-        </h2>
+        </p>
         <ul className="mt-6 space-y-3 text-sm text-muted">
           {BENEFITS.map((b) => (
             <li key={b} className="flex items-center gap-3">

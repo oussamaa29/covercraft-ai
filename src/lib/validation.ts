@@ -47,10 +47,15 @@ export function safeNextPath(raw: unknown, fallback = "/dashboard"): string {
   // URL parsers drop tabs/newlines, so "/\t/evil.com" becomes "//evil.com".
   // Resolving against a dummy origin catches that and any similar trick.
   const base = "http://same-origin.invalid";
+  let url: URL;
   try {
-    if (new URL(raw, base).origin !== base) return fallback;
+    url = new URL(raw, base);
   } catch {
     return fallback;
   }
-  return raw;
+  // Dot segments survive the checks above but resolve to a protocol-relative
+  // path: "/.//evil.com" → "//evil.com". Return the normalized form, so what
+  // was validated is exactly what the router navigates to.
+  if (url.origin !== base || url.pathname.startsWith("//")) return fallback;
+  return url.pathname + url.search + url.hash;
 }

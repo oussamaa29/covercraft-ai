@@ -13,7 +13,7 @@ integration that survives retries and duplicate webhooks.
 - **Prisma 6** + Postgres (Neon in production, embedded Postgres locally)
 - **Auth**: custom email/password (bcrypt + signed JWT session cookie via `jose`) plus Google and GitHub sign-in through [arctic](https://arcticjs.dev), a thin OAuth 2.0 client — no Auth.js, so the whole flow is visible in `src/lib/auth.ts`, `src/lib/oauth.ts` and `src/app/api/auth/`
 - **Stripe**: Checkout, Customer Portal, and a webhook handler that reconciles subscription state
-- **AI**: Anthropic API for generation, with a deterministic mock fallback when no key is set
+- **AI**: pluggable writer — Ollama (free, local), Gemini (free tier) or Anthropic, picked from env, with a labeled demo fallback when none is set (`src/lib/ai.ts`)
 - **Tailwind v4** (CSS-based theme, no `tailwind.config.js`)
 
 ## Running it locally
@@ -75,11 +75,23 @@ origin), so it has to match the host you browse on exactly — `localhost`
 and `127.0.0.1` are different hosts, and the short-lived state cookies
 won't survive the switch.
 
-### Enabling real AI generation
+### Enabling real AI generation (free)
 
-Set `ANTHROPIC_API_KEY` in `.env`. Without it, `/api/generate` returns a
-clearly-labeled mock letter instead of failing — the whole app is demoable
-without any paid API key.
+Without any AI config, `/api/generate` returns a clearly-labeled demo
+letter, so the whole app is demoable with no key. To write real letters:
+
+- **Ollama (free, local — recommended):** install [Ollama](https://ollama.com),
+  run `ollama pull llama3.2:3b` (~2 GB), then set `OLLAMA_MODEL="llama3.2:3b"`.
+  Any Ollama model works; bigger ones write better letters but run slower
+  on a CPU.
+- **Gemini (free tier):** create a key in Google AI Studio and set
+  `GEMINI_API_KEY`. Works on a deployed site too, but the free daily quota
+  is small.
+- **Anthropic (paid):** set `ANTHROPIC_API_KEY`; it takes priority if set.
+
+The dashboard badge shows which writer is active. If the configured
+provider is down or out of quota, the request fails with a 503 and nothing
+is saved, so a failed attempt never counts against the Free plan's limit.
 
 ### Enabling real billing
 

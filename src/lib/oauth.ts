@@ -250,7 +250,14 @@ async function resolveOnce(profile: OAuthProfile, linkToUserId?: string): Promis
   if (!profile.emailVerified) return { ok: false, error: "email_unverified" };
 
   const byEmail = await db.user.findUnique({ where: { email } });
-  if (byEmail) return linkAccount(byEmail, account, profile.image, "auto_linked");
+  if (byEmail) {
+    // Password signups never prove they own their email, so an attacker could
+    // pre-register victim@example.com and wait for the victim's Google login
+    // to merge into it. Only password-less users, who were created here from
+    // a provider-verified email, are safe to auto-link.
+    if (byEmail.password) return { ok: false, error: "email_in_use" };
+    return linkAccount(byEmail, account, profile.image, "auto_linked");
+  }
 
   const name = (profile.name?.trim() || email.split("@")[0]).slice(0, 80);
   const user = await db.user.create({

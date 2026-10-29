@@ -22,13 +22,14 @@ export function TonePreview() {
 
   return (
     <div className="rounded-card border border-border bg-surface p-5 shadow-sm">
-      <div className="mb-4 flex flex-wrap gap-2" role="radiogroup" aria-label="Letter tone">
+      {/* Toggle buttons rather than a radiogroup: they work with Tab/Enter as
+          is, without the arrow-key handling a radiogroup promises. */}
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Letter tone">
         {(Object.keys(SAMPLES) as ToneName[]).map((name) => (
           <button
             key={name}
             type="button"
-            role="radio"
-            aria-checked={tone === name}
+            aria-pressed={tone === name}
             onClick={() => setTone(name)}
             className={cn(
               "rounded-full px-3 py-1 text-xs font-medium transition-colors",
@@ -44,7 +45,11 @@ export function TonePreview() {
       <p className="text-xs font-medium uppercase tracking-wide text-muted">
         Product Manager · Lumen
       </p>
-      <p key={tone} className="mt-2 animate-[fade-in_250ms_ease-out] text-sm motion-reduce:animate-none leading-relaxed">
+      <p
+        key={tone}
+        aria-live="polite"
+        className="mt-2 animate-[fade-in_250ms_ease-out] text-sm leading-relaxed motion-reduce:animate-none"
+      >
         {SAMPLES[tone]}
       </p>
     </div>

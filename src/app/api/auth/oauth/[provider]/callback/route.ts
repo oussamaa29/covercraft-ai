@@ -27,11 +27,6 @@ export async function GET(
   const intent = store.get(OAUTH_COOKIES.intent)?.value === "link" ? "link" : "login";
   const next = safeNextPath(store.get(OAUTH_COOKIES.next)?.value);
 
-  // One-shot: whatever happens below, this state can't be replayed.
-  for (const name of Object.values(OAUTH_COOKIES)) {
-    store.delete({ name, path: OAUTH_COOKIE_PATH });
-  }
-
   const redirectTo = (path: string) => NextResponse.redirect(new URL(path, request.url));
   const fail = (code: OAuthErrorCode) =>
     redirectTo(`${intent === "link" ? "/dashboard/settings" : "/login"}?error=${code}`);
@@ -39,16 +34,24 @@ export async function GET(
   if (!isProviderEnabled(provider)) return fail("provider_disabled");
 
   const params = request.nextUrl.searchParams;
+  // State first, and the flow cookies stay put on a mismatch: otherwise any
+  // site could link to "?error=access_denied" and cancel a sign-in that's
+  // still in progress in another tab.
+  const state = params.get("state");
+  if (!state || !storedState || state !== storedState) return fail("invalid_state");
+
+  // One-shot from here on: this state can't be replayed.
+  for (const name of Object.values(OAUTH_COOKIES)) {
+    store.delete({ name, path: OAUTH_COOKIE_PATH });
+  }
+
   const providerError = params.get("error");
   if (providerError) {
     return fail(providerError === "access_denied" ? "oauth_denied" : "oauth_failed");
   }
 
   const code = params.get("code");
-  const state = params.get("state");
-  if (!code || !state || !storedState || state !== storedState) {
-    return fail("invalid_state");
-  }
+  if (!code) return fail("invalid_state");
 
   let linkToUserId: string | undefined;
   if (intent === "link") {

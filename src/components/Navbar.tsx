@@ -6,7 +6,9 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { UserAvatar } from "@/components/UserAvatar";
 
 export async function Navbar() {
-  const user = await getCurrentUser();
+  // The navbar lives in the root layout, which error.tsx can't catch. If the
+  // DB is down, render signed-out and let the page's own query hit error.tsx.
+  const user = await getCurrentUser().catch(() => null);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur">
