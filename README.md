@@ -1,11 +1,19 @@
 # CoverCraft
 
+[![CI](https://github.com/oussamaa29/covercraft-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/oussamaa29/covercraft-ai/actions/workflows/ci.yml)
+
 A small SaaS: users sign up, generate AI-tailored cover letters, and hit a
 usage limit on the Free plan that upgrades them to a real Stripe
 subscription (Pro / Business). The product itself is intentionally simple —
 the point of this project is everything *around* the product: auth
 (email + Google/GitHub), account management, plan-gating, and a Stripe
 integration that survives retries and duplicate webhooks.
+
+![Landing page](docs/landing.png)
+
+| Writing a letter (local model via Ollama) | My letters |
+|---|---|
+| ![Workspace](docs/workspace.png) | ![Letters](docs/letters.png) |
 
 ## What it does
 
@@ -207,7 +215,8 @@ races, sessionVersion revocation, CSRF refusal, the AI provider fallback,
 letter ownership (another user's id is a 404), quota on rewrites, the
 profile limit under concurrent requests, and single-use reset tokens.
 The Playwright suite in `tests/e2e` (`npm run test:e2e`) is a work in
-progress.
+progress. GitHub Actions runs lint, type-checking, the Vitest suite against a
+Postgres 17 service, and a production build on every push.
 
 ## Project structure
 
@@ -233,3 +242,7 @@ prisma/
 scripts/
   db.mjs               # local embedded Postgres (npm run db)
 ```
+
+## License
+
+MIT
