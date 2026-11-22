@@ -41,6 +41,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      # Types globaux de Next 16 (PageProps, RouteContext…), générés sans build complet
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - name: Tests (Vitest, base Postgres de test)
         run: npm test
